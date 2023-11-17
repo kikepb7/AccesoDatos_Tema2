@@ -325,7 +325,7 @@ public class HoldingDAO {
         Connection conexion = null;
         PreparedStatement sentencia = null;
         ResultSet resultado = null;
-        double res = 0.0;
+        Double res = 0.0;
 
         try {
             conexion = establecerConexion();

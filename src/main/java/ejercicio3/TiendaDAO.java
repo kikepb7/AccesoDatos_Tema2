@@ -1,5 +1,7 @@
 package ejercicio3;
 
+import org.w3c.dom.ls.LSOutput;
+
 import java.sql.*;
 import java.time.LocalDate;
 
@@ -17,6 +19,9 @@ public class TiendaDAO {
         this.password = password;
     }
 
+    /*
+    CONEXIÓN
+     */
     public Connection establecerConexion() throws SQLException {
         return DriverManager.getConnection("jdbc:mysql://" + this.host + "/" + this.base_datos, this.usuario, this.password);
     }
@@ -110,24 +115,183 @@ public class TiendaDAO {
     }
 
     public String comprasCliente(String cliente){
-        return null;
+        Connection conexion = null;
+        PreparedStatement sentencia = null;
+        ResultSet resultado = null;
+        StringBuilder res = new StringBuilder();
+
+        try {
+            conexion = establecerConexion();
+
+            Integer clientId = returnId(conexion, cliente, "clientes", "nombre");
+
+            if (clientId == null) {
+                throw new RuntimeException("No existe el cliente " + cliente);
+            } else {
+
+                // Mostramos los componentes comprados y sus cantidades
+                String sql_comprasCliente = "SELECT clientes.nombre AS cliente_nombre, productos.nombre AS producto_nombre, ventas.unidades " +
+                        "FROM ventas " +
+                        "JOIN clientes ON ventas.cliente = clientes.id " +
+                        "JOIN productos ON ventas.producto = productos.id " +
+                        "WHERE clientes.id = ?";
+
+                sentencia = conexion.prepareStatement(sql_comprasCliente);
+                sentencia.setInt(1, clientId);
+                resultado = sentencia.executeQuery();
+
+                while (resultado.next()) {
+                    String clientName = resultado.getString("cliente_nombre");
+                    String productName = resultado.getString("producto_nombre");
+                    int amount = resultado.getInt("unidades");
+
+                    res.append("Cliente: ").append(clientName).append(", Producto: ").append(productName).append(", Cantidad: ").append(amount).append("\n");
+                }
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error de SQL\n" + e.getMessage());
+        } finally {
+            cerrarConexion(conexion, sentencia, resultado);
+        }
+
+        return res.toString();
     }
 
     public Double recaudacionTotal(){
-        return null;
+        Connection conexion = null;
+        PreparedStatement sentencia = null;
+        ResultSet resultado = null;
+        Double res = 0.0;
+
+        try {
+            conexion = establecerConexion();
+
+            // Mostrar la recaudación de la tienda por ventas
+            String sql_recaudacionTotal = "SELECT SUM(productos.precio * ventas.unidades) AS recaudacion_total " +
+                    "FROM ventas " +
+                    "JOIN productos ON ventas.producto = productos.id";
+
+            sentencia = conexion.prepareStatement(sql_recaudacionTotal);
+            resultado = sentencia.executeQuery();
+
+            if(resultado.next()) {
+                res = resultado.getDouble("recaudacion_total");
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error de SQL\n" + e.getMessage());
+        } finally {
+            cerrarConexion(conexion, sentencia, resultado);
+        }
+
+        return res;
     }
 
 
     public String porCategorias(){
-        return null;
+        Connection conexion = null;
+        PreparedStatement sentencia = null;
+        ResultSet resultado = null;
+        StringBuilder res = new StringBuilder();
+
+        try {
+            conexion = establecerConexion();
+
+            // Mostrar la cantidad de ventas organizadas por categorias de productos
+            String sql_porCategorias = "SELECT categorias.nombre AS categoria, COALESCE(SUM(ventas.unidades), 0) AS cantidad_ventas " +
+                    "FROM ventas " +
+                    "RIGHT JOIN productos ON ventas.producto = productos.id " +
+                    "RIGHT JOIN categorias ON productos.categoria_id = categorias.id " +
+                    "GROUP BY categorias.nombre";
+
+            sentencia = conexion.prepareStatement(sql_porCategorias);
+            resultado = sentencia.executeQuery();
+
+            while(resultado.next()) {
+                String categoria = resultado.getString("categoria");
+                int ventas = resultado.getInt("cantidad_ventas");
+
+                res.append("Categoría: ").append(categoria).append(", Ventas: ").append(ventas).append(" unidades.\n");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error de SQL\n" + e.getMessage());
+        } finally {
+            cerrarConexion(conexion, sentencia, resultado);
+        }
+
+        return res.toString();
     }
 
     public String ultimaVenta(){
-        return null;
+        Connection conexion = null;
+        PreparedStatement sentencia = null;
+        ResultSet resultado = null;
+        StringBuilder res = new StringBuilder();
+
+        try {
+            conexion = establecerConexion();
+
+            // Mostrar el nombre del cliente y del producto de la última venta realizada en la tienda
+            String sql_ultimaVenta = "SELECT clientes.nombre AS nombre_cliente, productos.nombre AS nombre_producto, ventas.unidades AS cantidad_producto " +
+                    "FROM ventas " +
+                    "JOIN clientes ON ventas.cliente = clientes.id " +
+                    "JOIN productos ON ventas.producto = productos.id " +
+                    "ORDER BY ventas.fecha DESC LIMIT 1";
+
+            sentencia = conexion.prepareStatement(sql_ultimaVenta);
+            resultado = sentencia.executeQuery();
+
+            while(resultado.next()) {
+                String nombreCliente = resultado.getString("nombre_cliente");
+                String nombreProducto = resultado.getString("nombre_producto");
+                int cantidadProducto = resultado.getInt("cantidad_producto");
+
+                res.append("Cliente: ").append(nombreCliente).append(", Producto: ").append(nombreProducto).append(", Unidades: ").append(cantidadProducto).append(" unidades.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error de SQL\n" + e.getMessage());
+        } finally {
+            cerrarConexion(conexion, sentencia, resultado);
+        }
+
+        return res.toString();
     }
 
     public String masVendido(){
-        return null;
+        Connection conexion = null;
+        PreparedStatement sentencia = null;
+        ResultSet resultado = null;
+        StringBuilder res = new StringBuilder();
+
+        try {
+            conexion = establecerConexion();
+
+            // Devolvemos el nombre del producto con mayor cantidad de ventas, incluyendo el número de ventas junto al nombre
+            String sql_masVendido = "SELECT productos.nombre AS nombre_producto, SUM(ventas.unidades) AS cantidad_ventas " +
+                    "FROM ventas " +
+                    "JOIN productos ON ventas.producto = productos.id " +
+                    "GROUP BY productos.nombre " +
+                    "ORDER BY cantidad_ventas DESC " +
+                    "LIMIT 1";
+
+            sentencia = conexion.prepareStatement(sql_masVendido);
+            resultado = sentencia.executeQuery();
+
+            while(resultado.next()) {
+                String nombreProducto = resultado.getString("nombre_producto");
+                int cantidadVentas = resultado.getInt("cantidad_ventas");
+
+                res.append("Número de ventas: ").append(cantidadVentas).append(", Producto: ").append(nombreProducto);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error de SQL\n" + e.getMessage());
+        } finally {
+            cerrarConexion(conexion, sentencia, resultado);
+        }
+
+        return res.toString();
     }
 
     public String sinVentas(){

@@ -90,6 +90,9 @@ class ClubDAOTest {
         String resultado = dao.eventoMultitudinario();
 
         assertEquals(valor_esperado, resultado);
+
+        assertEquals(valor_esperado, dao.eventoMultitudinario());
+
     }
 
     @Test

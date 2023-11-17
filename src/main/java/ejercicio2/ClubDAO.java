@@ -173,7 +173,7 @@ public class ClubDAO {
             resultado = sentencia.executeQuery();
 
             if(!resultado.next()) {
-                System.out.println("No existe el socio");
+               throw new RuntimeException("No existe el socio");
             } else {
                 // Comprobar si existe el evento
                 int socioId = resultado.getInt("id");
@@ -186,13 +186,13 @@ public class ClubDAO {
                 resultado = sentencia.executeQuery();
 
                 if(!resultado.next()) {
-                    System.out.println("No existe el evento");
+                    throw new RuntimeException("No existe el evento");
                 } else {
                     // Inscribir el socio al evento
                     int eventoId = resultado.getInt("id");
 
                     String sql_inscribir = "INSERT INTO inscripciones (socio, evento) " +
-                            "VALUES (?, ?)";
+                            "VALUES (NULL, ?, ?)";
 
                     sentencia = conexion.prepareStatement(sql_inscribir);
                     sentencia.setInt(1, socioId);
@@ -367,6 +367,12 @@ public class ClubDAO {
                     "GROUP BY e.id " +
                     "ORDER BY cantidad_inscripciones DESC " +
                     "LIMIT 1";
+
+//            String sql = "SELECT e.nombre FROM eventos e " +
+//                    "JOIN inscripciones i ON e.id = i.evento " +
+//                    "GROUP BY i.evento " +
+//                    "ORDER BY count(*) DESC " +
+//                    "LIMIT 1";
 
             sentencia = conexion.prepareStatement(sql_eventoMultitudinario);
             resultado = sentencia.executeQuery();
