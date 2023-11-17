@@ -269,10 +269,11 @@ public class ClubDAO {
             conexion = establecerConexion();
 
             // Mostrar la información de un evento junto con los nombres de los asistentes
-            String sql_infoEventos = "SELECT e.nombre AS nombre_evento, e.fecha AS fecha_evento, s.nombre AS nombre_asistente " +
+            String sql_infoEventos = "SELECT e.nombre AS nombre_evento, e.fecha AS fecha_evento, GROUP_CONCAT(s.nombre) AS nombres_asistentes " +
                     "FROM eventos e " +
                     "JOIN inscripciones i ON e.id = i.evento " +
-                    "JOIN socios s ON i.socio = s.id";
+                    "JOIN socios s ON i.socio = s.id " +
+                    "GROUP BY e.id, e.nombre, e.fecha";
 
             sentencia = conexion.prepareStatement(sql_infoEventos);
             resultado = sentencia.executeQuery();
@@ -280,9 +281,9 @@ public class ClubDAO {
             while(resultado.next()) {
                 String nombreEvento = resultado.getString("nombre_evento");
                 String fechaEvento = resultado.getString("fecha_evento");
-                String nombreAsistente = resultado.getString("nombre_asistente");
+                String nombresAsistentes = resultado.getString("nombres_asistentes");
 
-                res.append("Evento: ").append(nombreEvento).append(", Fecha: ").append(fechaEvento).append(", Asistente: ").append(nombreAsistente).append("\n");
+                res.append("Evento: ").append(nombreEvento).append(", Fecha: ").append(fechaEvento).append(", Asistentes: ").append(nombresAsistentes).append("\n");
             }
 
         } catch (SQLException e) {

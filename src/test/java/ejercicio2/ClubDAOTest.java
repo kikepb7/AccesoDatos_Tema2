@@ -53,11 +53,9 @@ class ClubDAOTest {
 
     @Test
     void resumentEventos() {
-        String valor_esperado = "Evento: Fiesta de la espuma, Fecha: 2021-12-20, Asistente: Juan\n" +
-                "Evento: Cata de vinos, Fecha: 2020-11-30, Asistente: Juan\n" +
-                "Evento: Fiesta de la espuma, Fecha: 2021-12-20, Asistente: Antonio\n" +
-                "Evento: Partido de futbol sala, Fecha: 2023-06-30, Asistente: Antonio\n" +
-                "Evento: Cata de vinos, Fecha: 2020-11-30, Asistente: Jose\n";
+        String valor_esperado = "Evento: Fiesta de la espuma, Fecha: 2021-12-20, Asistentes: Antonio,Juan\n" +
+                "Evento: Cata de vinos, Fecha: 2020-11-30, Asistentes: Jose,Juan\n" +
+                "Evento: Partido de futbol sala, Fecha: 2023-06-30, Asistentes: Antonio\n";
 
         String resultado = dao.resumentEventos();
 
