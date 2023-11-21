@@ -299,7 +299,51 @@ public class TiendaDAO {
     }
 
 
-    public void borrarProveedor(){
+    public void borrarProveedor(String proveedor) {
+    Connection conexion = null;
+    PreparedStatement sentencia = null;
+    ResultSet resultado = null;
 
+    try {
+        conexion = establecerConexion();
+
+        Integer idProveedor = returnId(conexion, proveedor, "proveedores", "nombre");
+
+        if(idProveedor == null) {
+            throw new RuntimeException("No existe un proveedor con el nombre - " + proveedor);
+        }
+
+        // Borrar productos del proveedor
+        String sql_borrarProductos = "DELETE from productos " +
+                "WHERE proveedor_id = ?";
+
+        sentencia = conexion.prepareStatement(sql_borrarProductos);
+        sentencia.setInt(1, idProveedor);
+        int filasEliminadas = sentencia.executeUpdate();
+
+        if(filasEliminadas < 0) {
+            System.out.println("No se han eliminado productos");
+        } else {
+
+            // Borrar los proveedores
+            String sql_borrarProveedor = "DELETE from proveedores " +
+                    "WHERE nombre = ?";
+
+            sentencia = conexion.prepareStatement(sql_borrarProveedor);
+            sentencia.setString(1, proveedor);
+
+            int filasEliminadas2 = sentencia.executeUpdate();
+
+            if(filasEliminadas2 < 0) {
+                System.out.println("No se han eliminado proveedores");
+            } else {
+                System.out.println("Proveedores eliminados: " + filasEliminadas2);
+            }
+        }
+    } catch (SQLException e) {
+        System.out.println("Error de SQL\n" + e.getMessage());
+    } finally {
+        cerrarConexion(conexion, sentencia, resultado);
     }
+}
 }
